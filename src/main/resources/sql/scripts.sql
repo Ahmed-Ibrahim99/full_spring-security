@@ -5,6 +5,16 @@ create table authorities
  constraint fk_authorities_users foreign key(username) references users(username));
 create unique index ix_auth_username on authorities (username,authority);
 
+create table customer (
+    id      bigserial    primary key,
+    email   varchar(255) not null unique,
+    password varchar(500) not null,
+    role    varchar(50)  not null
+);
+
+insert into public.customer (email, password, role) values ('admin@example.com', '{bcrypt}$2a$12$xObqVRS6jC7HXj/WRueEe.BkWFRDmwLmwTOclq/uh0.TgTkC7u49q', 'admin');
+insert into public.customer (email, password, role) values ('user@example.com', '{noop}Test@Security_123456', 'read');
+
 insert into public.users values ('user', '{noop}Test@Security_123456', '1');
 insert into public.users values ('admin', '{bcrypt}$2a$12$xObqVRS6jC7HXj/WRueEe.BkWFRDmwLmwTOclq/uh0.TgTkC7u49q', '1');
 
