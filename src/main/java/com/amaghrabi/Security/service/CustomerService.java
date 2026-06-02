@@ -1,5 +1,7 @@
 package com.amaghrabi.Security.service;
 
+import com.amaghrabi.Security.constants.ErrorCodes;
+import com.amaghrabi.Security.exception.BusinessException;
 import com.amaghrabi.Security.model.Customer;
 import com.amaghrabi.Security.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,15 +27,17 @@ public class CustomerService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
         Customer customer = customerRepository.findByEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found" + username));
+                .orElseThrow(() -> new BusinessException(ErrorCodes.USER_NOT_FOUND));
         List<GrantedAuthority> authorities =
                 List.of(new SimpleGrantedAuthority(customer.getRole()));
         return new User(customer.getEmail(), customer.getPassword(), authorities);
     }
 
     public void createCustomer(Customer customer) {
-        String password = passwordEncoder.encode(customer.getPassword());
-        customer.setPassword(password);
+        if (customerRepository.findByEmail(customer.getEmail()).isPresent()) {
+            throw new BusinessException(ErrorCodes.USER_ALREADY_EXISTS);
+        }
+        customer.setPassword(passwordEncoder.encode(customer.getPassword()));
         customerRepository.save(customer);
     }
 }

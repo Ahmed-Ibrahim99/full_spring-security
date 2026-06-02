@@ -19,13 +19,8 @@ public class UserController {
 
     @PostMapping("/create")
     public ResponseEntity<String> createUser(@RequestBody Customer customer) {
-        try {
-            customerService.createCustomer(customer);
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body("Customer created successfully");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("An Exception Occurred " + e.getMessage());
-        }
+        customerService.createCustomer(customer);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body("Customer created successfully");
     }
 }

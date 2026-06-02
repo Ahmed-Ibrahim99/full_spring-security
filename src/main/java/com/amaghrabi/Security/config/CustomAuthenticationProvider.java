@@ -1,5 +1,7 @@
 package com.amaghrabi.Security.config;
 
+import com.amaghrabi.Security.constants.ErrorCodes;
+import com.amaghrabi.Security.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -26,12 +28,21 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
     public @Nullable Authentication authenticate(@NonNull Authentication authentication) throws AuthenticationException {
         String username = authentication.getName();
         String password = Objects.requireNonNull(authentication.getCredentials()).toString();
-        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+        UserDetails userDetails;
+        try {
+            userDetails = userDetailsService.loadUserByUsername(username);
+        } catch (BusinessException ex) {
+            // User not found — surface as bad credentials so the entry point
+            // can return the INVALID_CREDENTIALS message from the DB.
+            throw new BadCredentialsException(ex.getErrorName(), ex);
+        }
+
         if (passwordEncoder.matches(password, userDetails.getPassword())) {
             return new UsernamePasswordAuthenticationToken(username,
                     password, userDetails.getAuthorities());
         }
-        throw new BadCredentialsException("Invalid credentials");
+        throw new BusinessException(ErrorCodes.INVALID_CREDENTIALS);
     }
 
     @Override
